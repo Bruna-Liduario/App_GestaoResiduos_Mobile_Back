@@ -1,8 +1,6 @@
 package com.gestaoresiduos.residuos.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -23,26 +21,20 @@ public class UserController {
 
 	@PostMapping("/signup")
 	public ResponseEntity<User> signUp(@RequestBody User user) {
-	    try {
-	        User savedUser = userService.signUp(user);
-	        return new ResponseEntity<>(savedUser, HttpStatus.CREATED);
-	    } catch (Exception e) {
-	        e.printStackTrace(); 
-	        return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-	    }
+		User savedUser = userService.signUp(user);
+		if (savedUser != null) {
+			return ResponseEntity.ok(savedUser);
+		}
+		return ResponseEntity.badRequest().build(); // Se erro ao salvar
 	}
 
 	@PostMapping("/signin")
-	public ResponseEntity<?> signIn(@RequestBody UserDto loginDto) {
-	    User user = userService.signIn(loginDto.getEmail(), loginDto.getPassword());
-	    if (user == null) {
-	        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-	                .contentType(MediaType.APPLICATION_JSON)
-	                .body("{\"error\": \"Usuário inexistente ou senha inválida\"}");
+	public ResponseEntity<UserDto> signIn(@RequestBody User user) {
+	    UserDto existingUser = userService.signIn(user.getEmail(), user.getPassword());
+	    if (existingUser != null) {
+	        return ResponseEntity.ok(existingUser);
 	    }
-	    // Evitar retornar a senha
-	    user.setPassword(null);
-	    return ResponseEntity.ok(user);
+	    return ResponseEntity.badRequest().build(); // Se email ou senha forem inválidos
 	}
 
 }
